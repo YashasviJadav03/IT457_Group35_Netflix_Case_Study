@@ -1,0 +1,135 @@
+{# Browse page for the watchlist application.
+
+   The server renders the shell and embeds the data it already fetched once, as
+   JSON, inside #boot-data. static/app.js reads that JSON and builds every
+   visual element (profile tiles, hero, poster rows, cards, modal).
+
+   Why: keeping the markup empty means the page has one data format -- the
+   status, catalog and entries objects the API also returns -- and no Jinja
+   loops that could drift out of sync with the JavaScript. #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#141414">
+  <meta name="description" content="Netflix-style watchlist application: profiles, catalogue rows and a saved list.">
+  <title>Netflix Clone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body id="top">
+
+<noscript>
+  <p class="noscript">JavaScript is required: this page builds the profile picker, the poster rows and the &quot;My List&quot; buttons with static/app.js.</p>
+</noscript>
+
+{# The one and only place the server data enters the page. `tojson` escapes
+   the content for safe use inside a <script> block, so no |safe is needed. #}
+<script type="application/json" id="boot-data">{{ {"status": status, "catalog": catalog, "entries": entries} | tojson }}</script>
+
+{# ---------------------------------------------------------------
+   SCREEN 1: "Who's watching?" profile gate
+   --------------------------------------------------------------- #}
+<section id="profile-gate" class="profile-gate" aria-labelledby="gate-title">
+  <p class="gate-wordmark">WATCHLIST</p>
+  <h1 id="gate-title" class="gate-title">Who's watching?</h1>
+
+  {# Tiles are injected here by app.js, one per stored profile. #}
+  <div id="profile-list" class="profile-list"></div>
+
+  <div class="profile-add">
+    <button id="add-profile-btn" class="profile-add-btn" type="button" aria-label="Add a profile">
+      <span class="profile-add-plus" aria-hidden="true">+</span>
+    </button>
+    <p class="profile-add-label">Add Profile</p>
+
+    {# Inline form instead of window.prompt(), so it can be styled and tested.
+       Kept hidden until the "+" tile is clicked. #}
+    <div id="add-profile-panel" class="add-profile-panel" hidden>
+      <label class="sr-only" for="new-profile-name">New profile name</label>
+      <input id="new-profile-name" class="add-profile-input" type="text" maxlength="100"
+             placeholder="Profile name" autocomplete="off">
+      <div class="add-profile-actions">
+        <button id="save-profile-btn" class="btn btn-light btn-small" type="button">Save</button>
+        <button id="cancel-profile-btn" class="btn btn-ghost btn-small" type="button">Cancel</button>
+      </div>
+      <p id="profile-error" class="profile-error" role="alert"></p>
+    </div>
+  </div>
+</section>
+
+{# ---------------------------------------------------------------
+   SCREEN 2: the browse page
+   --------------------------------------------------------------- #}
+<div id="app-root" class="app-root" hidden>
+
+  <header id="navbar" class="navbar">
+    <div class="navbar-inner">
+      <a class="wordmark" href="#top">Netflix Clone</a>
+
+      <nav class="navbar-links" aria-label="Main">
+        <a class="navbar-link is-active" href="#top">Home</a>
+        <a class="navbar-link" id="nav-mylist" href="#row-mylist">My List</a>
+      </nav>
+
+      <div class="navbar-profile">
+        <span id="nav-avatar" class="nav-avatar" aria-hidden="true"></span>
+        <span id="nav-profile-name" class="nav-profile-name"></span>
+        <button id="switch-profile-btn" class="btn btn-ghost btn-small" type="button">Switch profile</button>
+      </div>
+    </div>
+  </header>
+
+  {# Database status indicator: a small pill in the bottom-right corner, green
+     when connected and red when not. app.js refreshes it from GET /api/status
+     every 10s. tabindex makes it reachable by keyboard; the click handler in
+     app.js opens it on touch screens, where there is no hover. #}
+  <div id="db-banner" class="db-banner" role="status" aria-live="polite"
+       tabindex="0" aria-expanded="false">
+    <span class="banner-dot" aria-hidden="true"></span>
+    <span id="banner-label" class="banner-label"></span>
+    <span class="banner-detail-wrap">
+      <span id="banner-message" class="banner-message"></span>
+      <span id="banner-details" class="banner-details"></span>
+    </span>
+  </div>
+
+  <section id="hero" class="hero" aria-labelledby="hero-title">
+    <div class="hero-content">
+      <p class="hero-eyebrow">Featured today</p>
+      <h1 id="hero-title" class="hero-title"></h1>
+      <p id="hero-genre" class="hero-genre"></p>
+      <p class="hero-desc">
+        A profile, a catalogue of shows and one PostgreSQL table in between.
+        There is no playback and no artwork: every poster on this page is a
+        CSS gradient derived from the title itself.
+      </p>
+      <div class="hero-actions">
+        <button id="hero-play-btn" class="btn btn-play" type="button">
+          <span class="btn-icon" aria-hidden="true">&#9654;</span> Play
+        </button>
+        <button id="hero-add-btn" class="btn btn-list" type="button">
+          <span class="btn-icon" aria-hidden="true">+</span> My List
+        </button>
+      </div>
+    </div>
+    <div class="hero-fade" aria-hidden="true"></div>
+  </section>
+
+  {# Rows (My List, Trending Now, one per genre) are injected here. #}
+  <main id="rows" class="rows" aria-label="Catalogue"></main>
+</div>
+
+{# ---------------------------------------------------------------
+   Detail modal + toast (shared by the whole page)
+   --------------------------------------------------------------- #}
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <div class="modal-backdrop" data-close="true"></div>
+  <div id="modal-content" class="modal-content"></div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+</body>
+</html>
