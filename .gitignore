@@ -1,0 +1,29 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+
+# ---------- Environment / secrets ----------
+.env
+.env.production
+.env.*
+!.env.example
+
+# ---------- IDE ----------
+.vscode/
+.idea/
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+
+# ---------- Keys / database dumps / logs ----------
+*.pem
+backup.sql
+*.log

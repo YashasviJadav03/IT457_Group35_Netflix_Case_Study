@@ -1,0 +1,6 @@
+# Runtime dependencies for the Flask web tier.
+# Versions are pinned so local, container and server installs stay identical.
+
+Flask==3.0.3
+psycopg2-binary==2.9.9
+gunicorn==22.0.0
