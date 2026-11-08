@@ -1,0 +1,78 @@
+# ===========================================================================
+# Two-tier stack: the Flask web service and its PostgreSQL database.
+#
+# Compose v2 format, so there is no obsolete "version:" key.
+#
+# Usage:
+#   cp .env.example .env          # once, then set the password
+#   docker compose up --build -d
+#   docker compose ps             # both services should be "healthy"
+#   docker compose logs -f web
+#   docker compose down           # keeps data;  down -v  deletes it
+#
+# The web service reads its database settings from .env, so the same file works
+# against the bundled db service (DB_HOST=db) or against an external PostgreSQL
+# server such as Amazon RDS (DB_HOST=<endpoint>).
+# ===========================================================================
+
+services:
+  # -------------------------------------------------------------------------
+  # db -- PostgreSQL 15 (local database tier).
+  # Credentials come from the .env file, so the whole project uses ONE set of
+  # variable names: DB_NAME / DB_USER / DB_PASSWORD.
+  # -------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Named volume for the data directory: survives restarts and
+      # `docker compose down`, and is deleted only by `docker compose down -v`.
+      - pgdata:/var/lib/postgresql/data
+      # init.sql is executed automatically by the postgres image the FIRST time
+      # this volume is empty, creating the watchlist table and its seed rows.
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # $$ escapes compose's own substitution, so the shell inside the
+      # container expands $POSTGRES_USER / $POSTGRES_DB (the values above).
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: always
+    # Port 5432 is deliberately not published: only the web container needs to
+    # reach it, over the compose network as db:5432, and an internet-facing
+    # database port is a security risk. Uncomment only to inspect the database
+    # from the host (psql, pgAdmin):
+    # ports:
+    #   - "5432:5432"
+
+  # -------------------------------------------------------------------------
+  # web -- Flask app served by gunicorn, built from the local Dockerfile.
+  # depends_on (service_healthy) makes the app start only after PostgreSQL
+  # accepts connections, so the first request already finds the schema.
+  # -------------------------------------------------------------------------
+  web:
+    build: .
+    ports:
+      # Host port only: WEB_PORT selects the port published on the host, while
+      # the container always listens on 5000. It defaults to 5000, so the
+      # mapping stays 5000:5000 unless WEB_PORT is set -- use WEB_PORT=5055 when
+      # port 5000 is already taken on the machine (macOS AirPlay Receiver, for
+      # example). A firewall or cloud security group must allow this port.
+      - "${WEB_PORT:-5000}:5000"
+    # Single source of truth for DB_HOST/DB_USER/DB_PASSWORD/DB_SSLMODE/
+    # DEPLOYMENT_ENV. Nothing is hardcoded in the image, so pointing the app at
+    # another PostgreSQL server is a configuration change only.
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  # Named volume holding the PostgreSQL data directory.
+  pgdata:

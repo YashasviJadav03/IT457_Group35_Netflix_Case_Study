@@ -1,0 +1,36 @@
+# Keep the build context small and keep secrets out of the image.
+# NOTE: every .env file is excluded on purpose -- configuration is injected at
+# runtime by docker compose (env_file), never baked into a layer.
+
+# Git metadata
+.git
+.gitignore
+
+# Environment files (secrets must never be copied into an image)
+.env
+.env.*
+
+# Python build artefacts and local virtualenvs
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+.venv/
+
+# Docs, helper scripts and local artefacts the runtime image does not need
+docs/
+scripts/
+*.md
+*.pem
+backup.sql
+*.log
+
+# Editor and OS noise
+.vscode/
+.idea/
+.DS_Store
+
+# Container definitions are not part of the image content
+Dockerfile
+.dockerignore
+docker-compose*.yml
