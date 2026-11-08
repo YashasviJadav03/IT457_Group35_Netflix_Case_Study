@@ -18,6 +18,8 @@
 - Database Status: `"Connected to Local Docker DB on EC2"` (Status pill: **Green**)
 - All catalog items and user watchlist entries render without latency.
 
+![Pre-Chaos Baseline (Healthy)](images/deliverable1_lift_and_shift_success.jpg)
+
 ### Step 2: Fault Injection (Chaos Monkey)
 - Execution command: `docker stop <db-container-id>`
 - The PostgreSQL database process was forcefully halted on the EC2 host.
@@ -31,6 +33,10 @@
 | **Status Banner (`/api/status`)** | Turns **RED**: `"Database connection FAILED"` | `200 OK` (Degraded) | High visibility |
 | **User Watchlist Read (`GET /api/watchlist`)** | Fails; displays `"Database unavailable"` | `500 Error` | Critical |
 | **User Watchlist Write (`POST /api/watchlist`)** | Write rejected; displays error toast | `500 Error` | Critical (Data loss risk) |
+
+![Post-Chaos Failure State (Red Status Pill)](images/chaos_monkey_db_failure.jpg)
+
+> **Observations on Failure:** As seen in the screenshot above, upon terminating the database container, the application status indicator immediately shifted from green to **red** (`Database connection FAILED`), and the watchlist section reported `"Database unavailable"`. This visually confirms the Single Point of Failure (SPOF) inherent to un-refactored Lift-and-Shift deployments.
 
 ### Step 4: Recovery
 - Container restored: `docker start <db-container-id>`

@@ -78,11 +78,21 @@ Both `netflix-liftshift-web` and `netflix-liftshift-db` should report `Up (healt
 ---
 
 ## 4. Verification & Deliverable 1 Verification
-- **Web URL:** `http://<EC2-PUBLIC-IP>:5000`
+- **Web URL:** `http://52.66.238.5:5000`
 - **Expected Status Pill:** Green indicator displaying `"Connected to Local Docker DB on EC2"`.
 - **Functionality Tested:**
-  - Browse movie catalog.
-  - Add items to user watchlist.
-  - Refresh page to verify database persistence on the attached EBS volume.
-- **Screenshot 1 Captured:** Full browser view showing EC2 Public IP and green status indicator.
+  - Selected profile ("Member 1") on the initial profile gate.
+  - Browsed Netflix catalog and featured titles ("Dark", "Narcos", etc.).
+  - Added and toggled items in user watchlist.
+  - Refreshed page to confirm database persistence on the attached EBS volume.
+
+### Deliverable 1 Evidence (Screenshots)
+
+#### 1. Netflix Profile Gate (`Who's Watching?`)
+![Netflix Profile Gate](images/netflix_profile_gate.png)
+
+#### 2. Live Cloud VM Application with Green Database Status Pill
+![Deliverable 1 - Lift-and-Shift on EC2 VM](images/deliverable1_lift_and_shift_success.jpg)
+
+> **Submission Verification:** The screenshot above displays the application executing at public IP `52.66.238.5:5000` with the bottom-right status pill displaying **`Connected to Local Docker DB on EC2`** (green), successfully fulfilling **Final Deliverable 1 (Lift-and-Shift on Cloud VM)**.
 
