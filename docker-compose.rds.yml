@@ -1,0 +1,36 @@
+# ==============================================================================
+# Docker Compose: Cloud Modernized / Refactored Deployment (AWS RDS)
+# Course: IT457 Cloud Computing | Group: 35
+# Assignee: Member 3 (Cloud Modernization & Analytics Lead)
+# Deliverable Checkpoint: Deliverable 2 — Decoupled State & Managed Cloud Database
+# ==============================================================================
+# In Phase B (Cloud Modernization), the local database container is ELIMINATED.
+# The web tier runs as a stateless container and connects directly to the
+# managed AWS RDS PostgreSQL instance across the VPC.
+# ==============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: netflix-modernized-web
+    restart: always
+    ports:
+      - "${WEB_PORT:-5000}:5000"
+    env_file:
+      - ${ENV_FILE:-.env}
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-netflix_db}
+      - DB_USER=${DB_USER:-postgresadmin}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSLMODE=${DB_SSLMODE:-prefer}
+      - DEPLOYMENT_ENV=${DEPLOYMENT_ENV:-AWS-RDS-Refactored}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

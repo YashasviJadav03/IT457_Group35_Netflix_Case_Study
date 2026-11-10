@@ -31,10 +31,12 @@ echo -e "${BOLD}================================================================
 echo -e "${BOLD} Netflix Case Study — Database Migration to AWS Managed RDS (PostgreSQL) ${NC}"
 echo -e "${BOLD}===================================================================${NC}"
 
-# 1. Load configuration from .env.production if present, else fallback to defaults
-if [[ -f .env.production ]]; then
+# 1. Load configuration from .env or .env.production if present
+if [[ -f .env ]]; then
+    log_info "Loading configuration from .env..."
+    export $(grep -v '^#' .env | xargs -d '\n')
+elif [[ -f .env.production ]]; then
     log_info "Loading configuration from .env.production..."
-    # Export variables from .env.production ignoring comments
     export $(grep -v '^#' .env.production | xargs -d '\n')
 fi
 
