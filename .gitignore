@@ -27,3 +27,5 @@ Thumbs.db
 *.pem
 backup.sql
 *.log
+
+.early.coverage
